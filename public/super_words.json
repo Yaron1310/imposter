@@ -1,22 +1,82 @@
 {
-  "Animals": ["Dog", "Cat", "Lion", "Tiger", "Elephant", "Giraffe", "Penguin", "Dolphin", "Wolf", "Bear"],
-  "Fruits": ["Apple", "Banana", "Strawberry", "Mango", "Grape", "Watermelon", "Pineapple", "Peach", "Cherry", "Lemon"],
-  "Furniture": ["Chair", "Table", "Bed", "Sofa", "Desk", "Shelf", "Lamp", "Wardrobe", "Couch", "Cabinet"],
-  "Sports": ["Football", "Basketball", "Tennis", "Swimming", "Boxing", "Cricket", "Hockey", "Golf", "Rugby", "Volleyball"],
-  "Countries": ["France", "Japan", "Brazil", "Canada", "Egypt", "India", "Mexico", "Norway", "Spain", "Thailand"],
-  "Colors": ["Red", "Blue", "Green", "Yellow", "Purple", "Orange", "Pink", "Brown", "Black", "White"],
-  "Vehicles": ["Car", "Bus", "Bicycle", "Motorcycle", "Airplane", "Boat", "Train", "Helicopter", "Truck", "Submarine"],
-  "Musical Instruments": ["Guitar", "Piano", "Violin", "Drums", "Trumpet", "Flute", "Saxophone", "Cello", "Harp", "Clarinet"],
-  "Professions": ["Doctor", "Teacher", "Chef", "Pilot", "Lawyer", "Engineer", "Artist", "Nurse", "Architect", "Firefighter"],
-  "Clothing": ["Shirt", "Pants", "Dress", "Jacket", "Hat", "Shoes", "Socks", "Scarf", "Gloves", "Tie"],
-  "Kitchen Items": ["Knife", "Fork", "Spoon", "Plate", "Bowl", "Cup", "Pan", "Pot", "Spatula", "Blender"],
-  "Weather": ["Rain", "Snow", "Wind", "Thunder", "Fog", "Hail", "Sunshine", "Blizzard", "Tornado", "Hurricane"],
-  "Emotions": ["Happy", "Sad", "Angry", "Scared", "Surprised", "Disgusted", "Excited", "Nervous", "Proud", "Jealous"],
-  "Body Parts": ["Eye", "Ear", "Nose", "Mouth", "Hand", "Foot", "Knee", "Elbow", "Shoulder", "Wrist"],
-  "Flowers": ["Rose", "Tulip", "Daisy", "Sunflower", "Orchid", "Lily", "Lavender", "Jasmine", "Poppy", "Iris"],
-  "Ocean Life": ["Shark", "Whale", "Octopus", "Crab", "Lobster", "Jellyfish", "Seahorse", "Clownfish", "Starfish", "Eel"],
-  "Space": ["Sun", "Moon", "Star", "Mars", "Jupiter", "Comet", "Galaxy", "Nebula", "Asteroid", "Satellite"],
-  "Food": ["Burger", "Pizza", "Pasta", "Sushi", "Taco", "Sandwich", "Soup", "Salad", "Steak", "Pancake"],
-  "Tools": ["Hammer", "Screwdriver", "Wrench", "Drill", "Saw", "Pliers", "Chisel", "Level", "Tape", "Axe"],
-  "Mythical Creatures": ["Dragon", "Unicorn", "Phoenix", "Mermaid", "Centaur", "Griffin", "Kraken", "Hydra", "Sphinx", "Goblin"]
+  "חיות": [
+    "כלב", "חתול", "אריה", "נמר", "פיל", 
+    "סוס", "פרה", "כבשה", "דולפין", "נשר"
+  ],
+  "מאכלים": [
+    "לחם", "גבינה", "פיצה", "פלאפל", "מרק", 
+    "פסטה", "אורז", "ביצה", "נקניק", "חמאה"
+  ],
+  "תבלינים": [
+    "מלח", "פלפל", "סוכר", "כמון", "זעתר", 
+    "פפריקה", "כורכום", "קינמון", "הל", "ציפורן"
+  ],
+  "רהיטים": [
+    "כיסא", "שולחן", "מיטה", "ספה", "ארון", 
+    "מראה", "מנורה", "שטיח", "וילון", "כרית"
+  ],
+  "פירות": [
+    "תפוח", "בננה", "תות", "אבטיח", "מלון", 
+    "ענבים", "אגס", "שזיף", "תפוז", "לימון"
+  ],
+  "ירקות": [
+    "גזר", "מלפפון", "עגבנייה", "חסה", "בצל", 
+    "תפוח אדמה", "פלפל אדום", "בטטה", "כרוב", "חציל"
+  ],
+  "כלי תחבורה": [
+    "רכב", "אופניים", "רכבת", "מטוס", "סירה", 
+    "טרקטור", "אוטובוס", "משאית", "מסוק", "קורקינט"
+  ],
+  "טבע ונוף": [
+    "שמיים", "ים", "שמש", "ירח", "כוכב", 
+    "הר", "נהר", "מדבר", "אגם", "יער"
+  ],
+  "מזג אוויר": [
+    "גשם", "רוח", "ענן", "שלג", "ברק", 
+    "רעם", "חום", "קור", "סערה", "ברד"
+  ],
+  "לבוש": [
+    "חולצה", "מכנסיים", "נעליים", "כובע", "מעיל", 
+    "גרביים", "צעיף", "חגורה", "כפפה", "שמלה"
+  ],
+  "בעלי מקצוע": [
+    "מורה", "רופא", "שוטר", "טבח", "נהג", 
+    "זמר", "שחקן", "צייר", "רקדן", "מדען"
+  ],
+  "מבנים ומקומות": [
+    "בית", "דירה", "חדר", "מטבח", "מרפסת", 
+    "גינה", "משרד", "חנות", "ספרייה", "טירה"
+  ],
+  "חומרים": [
+    "זהב", "כסף", "יהלום", "אבן", "חול", 
+    "אדמה", "ברזל", "עץ", "זכוכית", "פלסטיק"
+  ],
+  "טכנולוגיה": [
+    "מחשב", "טלפון", "מסך", "דפדפן", "תוכנה", 
+    "שרת", "אתר", "קישור", "מקלדת", "עכבר"
+  ],
+  "זמן": [
+    "בוקר", "צהריים", "ערב", "לילה", "שבוע", 
+    "חודש", "שנה", "דקה", "שנייה", "שעה"
+  ],
+  "רגשות": [
+    "שמחה", "עצב", "אהבה", "פחד", "תקווה", 
+    "כעס", "הפתעה", "קנאה", "אכזבה", "התרגשות"
+  ],
+  "כלי נגינה": [
+    "חליל", "תוף", "כינור", "פסנתר", "חצוצרה", 
+    "גיטרה", "סקסופון", "צ'לו", "נבל", "מפוחית"
+  ],
+  "משפחה": [
+    "ילד", "ילדה", "אמא", "אבא", "סבא", 
+    "סבתא", "אח", "אחות", "דוד", "דודה"
+  ],
+  "ציוד משרדי ובית ספר": [
+    "ספר", "מחברת", "עט", "עיפרון", "תיקייה", 
+    "קלמר", "מחק", "סרגל", "מספריים", "מהדק"
+  ],
+  "ים וחוף": [
+    "צדפה", "אלמוג", "שחף", "עוגן", "מפרש", 
+    "נמל", "מצוף", "גל", "חוף", "מגדלור"
+  ]
 }
