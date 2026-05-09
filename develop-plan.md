@@ -227,33 +227,34 @@ Result screen
 Next.js App (App Router)
 ├── Frontend: React components, Tailwind or CSS modules
 ├── API Routes: /api/rooms/* (all game logic lives here)
-├── Real-time: Pusher (recommended) or polling fallback
+├── Real-time: Polling every 2 seconds
 └── Database: Upstash Redis (recommended) or PlanetScale MySQL
 ```
 
 **Why this stack:**
-- **Next.js App Router** on Vercel — zero-config deployment, edge-ready
-- **Upstash Redis** — serverless-friendly, no persistent connections, JSON values, TTL support (auto-cleanup stale rooms), free tier is generous
-- **Pusher Channels** — managed WebSockets, free tier covers ~100 concurrent connections, Vercel-compatible (no long-lived server processes needed). Alternative: use Ably or Soketi.
-- If you prefer no external services: polling every 2 seconds works fine for ≤20 players
+- **Next.js App Router** on Vercel — zero-config deployment, serverless, no persistent processes needed
+- **Upstash Redis** — serverless-friendly key-value store, no persistent connections required, JSON values, TTL support (auto-cleanup stale rooms), generous free tier
+- **Polling every 2 seconds** — no external real-time service needed; each client simply calls `GET /api/rooms/[roomId]/state` on an interval. For a party game played in the same physical room, ≤2 second latency is completely unnoticeable
 
-### Request flow (with Pusher):
+**Why not Socket.io / Pusher on Vercel:**
+Vercel runs **serverless functions** — each request spins up in isolation and terminates after responding. Socket.io requires a persistent server process to hold open connections, which is fundamentally incompatible with Vercel's architecture. Pusher works around this by being an external managed WebSocket service, but it adds cost, complexity, and an external dependency. For this game, polling is the right default.
+
+> **If you later want real-time:** deploy the app to **Railway or Render** instead of Vercel (they support always-on Node.js processes), then attach Socket.io to the Next.js custom server. No game logic changes required — only the real-time transport changes.
+
+### Request flow:
 ```
 Player action (vote, ready, start)
   → POST /api/rooms/[roomId]/[action]
-  → Server updates Redis
-  → Server triggers Pusher event on channel room-{roomId}
-  → All connected clients receive event instantly
-  → Client updates local state
-```
+  → Server reads state from Redis
+  → Server applies game logic
+  → Server writes updated state to Redis
+  → Returns { ok: true }
 
-### Request flow (polling fallback):
-```
-Every 2 seconds:
+Every 2 seconds (all connected clients):
   → GET /api/rooms/[roomId]/state?name={playerName}
-  → Server reads Redis
-  → Returns player-specific state view
-  → Client diffs and updates UI
+  → Server reads state from Redis
+  → Returns player-specific view (roles hidden, tally computed on-the-fly)
+  → Client compares phase/scores/votes and updates UI if changed
 ```
 
 ---
@@ -380,7 +381,6 @@ imposter-game/
 │
 ├── lib/
 │   ├── redis.ts                 # Upstash Redis client
-│   ├── pusher.ts                # Pusher server client
 │   ├── game-logic.ts            # Pure functions: pickWord, pickImposter, assignTurns, tally
 │   ├── words.ts                 # Loads and exports words + super_words
 │   └── types.ts                 # All TypeScript interfaces
@@ -497,74 +497,61 @@ Host only. Deletes room from Redis.
 
 ## 8. Real-Time Layer
 
-### Option A: Pusher (Recommended)
+Polling is the only real-time mechanism used. No external service is required.
 
-Install: `npm install pusher pusher-js`
+Every client on the game page calls `GET /api/rooms/[roomId]/state` every 2 seconds. The server reads from Redis and returns a player-specific state view. The client compares the returned `phase` and other key fields to its current state and re-renders if anything changed.
 
-**Server:** After every state mutation, trigger a Pusher event:
+### `hooks/useGameState.ts`
+
 ```typescript
-// lib/pusher.ts
-import Pusher from 'pusher';
-export const pusherServer = new Pusher({
-  appId: process.env.PUSHER_APP_ID!,
-  key: process.env.NEXT_PUBLIC_PUSHER_KEY!,
-  secret: process.env.PUSHER_SECRET!,
-  cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-});
-```
-
-After each API mutation:
-```typescript
-await pusherServer.trigger(`room-${roomId}`, 'state-update', { phase: newState.phase });
-```
-
-**Client hook:**
-```typescript
-// hooks/useGameState.ts
-import PusherClient from 'pusher-js';
+import { useState, useEffect, useRef } from 'react';
+import type { PlayerStateView } from '@/lib/types';
 
 export function useGameState(roomId: string, playerName: string) {
   const [state, setState] = useState<PlayerStateView | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const fetchState = async () => {
+    try {
+      const res = await fetch(
+        `/api/rooms/${roomId}/state?name=${encodeURIComponent(playerName)}`
+      );
+      if (!res.ok) {
+        if (res.status === 404) setError('Room not found');
+        return;
+      }
+      const data: PlayerStateView = await res.json();
+      setState(data);
+      setError(null);
+    } catch {
+      // network error — silently retry on next tick
+    }
+  };
 
   useEffect(() => {
-    const fetchState = () =>
-      fetch(`/api/rooms/${roomId}/state?name=${encodeURIComponent(playerName)}`)
-        .then(r => r.json()).then(setState);
-
-    fetchState(); // initial fetch
-
-    const pusher = new PusherClient(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
-    });
-    const channel = pusher.subscribe(`room-${roomId}`);
-    channel.bind('state-update', fetchState); // re-fetch on any event
-
-    return () => { channel.unbind_all(); pusher.unsubscribe(`room-${roomId}`); };
-  }, [roomId, playerName]);
-
-  return state;
-}
-```
-
-### Option B: Polling (No external services)
-
-```typescript
-export function useGameState(roomId: string, playerName: string) {
-  const [state, setState] = useState<PlayerStateView | null>(null);
-
-  useEffect(() => {
-    const fetchState = () =>
-      fetch(`/api/rooms/${roomId}/state?name=${encodeURIComponent(playerName)}`)
-        .then(r => r.json()).then(setState).catch(() => {});
-
+    if (!roomId || !playerName) return;
     fetchState();
-    const interval = setInterval(fetchState, 2000);
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(fetchState, 2000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [roomId, playerName]);
 
-  return state;
+  return { state, error };
 }
 ```
+
+**Polling interval guidance:**
+- `2000ms` (2 seconds) — default, good balance of responsiveness and server load
+- `1000ms` (1 second) — snappier feel during voting, costs ~2× API calls
+- `3000ms` (3 seconds) — use for the room browser list (less time-sensitive)
+
+**Avoiding unnecessary re-renders:**
+Compare `state.phase` and `state.round` before calling `setState` — only update if something meaningful changed. Or use a library like `use-deep-compare-effect`.
+
+**Vercel function limits:**
+Vercel's hobby plan allows 100GB-hours of function execution per month. With 10 players each polling every 2 seconds, that's 5 requests/second. Each Redis read takes ~20ms. This is well within free tier limits for a party game.
 
 ---
 
@@ -697,16 +684,12 @@ Renders the player list in lobby. Each row: player name + status badge.
 
 ### `.env.local`
 ```env
-# Upstash Redis
+# Upstash Redis (get from upstash.com → create database → REST API tab)
 UPSTASH_REDIS_REST_URL=https://....upstash.io
 UPSTASH_REDIS_REST_TOKEN=...
-
-# Pusher (optional, skip if using polling)
-PUSHER_APP_ID=...
-PUSHER_SECRET=...
-NEXT_PUBLIC_PUSHER_KEY=...
-NEXT_PUBLIC_PUSHER_CLUSTER=eu
 ```
+
+That's it. No other services required.
 
 ### Redis key design
 ```
@@ -734,9 +717,7 @@ Update the TTL on every write to keep active rooms alive.
     "next": "^14",
     "react": "^18",
     "react-dom": "^18",
-    "@upstash/redis": "^1",
-    "pusher": "^5",
-    "pusher-js": "^8"
+    "@upstash/redis": "^1"
   },
   "devDependencies": {
     "typescript": "^5",
@@ -748,6 +729,8 @@ Update the TTL on every write to keep active rooms alive.
   }
 }
 ```
+
+No WebSocket libraries needed. The entire real-time layer is handled by the `useGameState` polling hook.
 
 ---
 
@@ -778,12 +761,11 @@ Update the TTL on every write to keep active rooms alive.
 - [ ] `POST /api/rooms/[roomId]/delete`
 - [ ] Test all routes with a REST client (Insomnia / Postman)
 
-### Phase 3 — Real-Time
-- [ ] Set up Pusher account (free tier at pusher.com) — or decide to use polling
-- [ ] `lib/pusher.ts` server client
-- [ ] Add Pusher trigger after each state mutation in API routes
-- [ ] `hooks/useGameState.ts` — Pusher subscription + initial fetch
-- [ ] Test that state updates propagate instantly across two browser tabs
+### Phase 3 — Real-Time (Polling)
+- [ ] `hooks/useGameState.ts` — polling hook with 2-second interval, error handling, cleanup on unmount
+- [ ] `hooks/usePlayerName.ts` — reads/writes player name to `sessionStorage` so page refresh doesn't lose identity
+- [ ] Test that two browser tabs polling the same room ID both receive state updates within 2 seconds of a mutation
+- [ ] Verify polling stops correctly when navigating away (cleanup function in `useEffect`)
 
 ### Phase 4 — UI Components
 - [ ] Base UI: `Button`, `Card`, `Badge`, `Spinner`
