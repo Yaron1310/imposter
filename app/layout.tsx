@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Bebas_Neue, DM_Sans } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 const bebasNeue = Bebas_Neue({
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable}`}>
       <body className="bg-bg text-text font-body min-h-screen antialiased">
         {children}
+        <Analytics />
       </body>
     </html>
   );
