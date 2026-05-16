@@ -9,10 +9,12 @@ import { RoomList } from '@/components/ui/RoomList';
 
 function AppHeader() {
   return (
-    <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
-      <span className="text-xl">🕵️</span>
-      <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
-    </Link>
+    <div className="flex justify-center">
+      <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
+        <span className="text-xl">🕵️</span>
+        <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
+      </Link>
+    </div>
   );
 }
 

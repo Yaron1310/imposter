@@ -28,14 +28,17 @@ export function LobbyScreen({ state, playerName, onReady, onForceStart, onLeave,
       <div className="w-full max-w-md space-y-4">
 
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
-            <span className="text-xl">🕵️</span>
-            <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
-          </Link>
-          <button onClick={onLeave} className="text-muted hover:text-text transition-colors font-body text-sm">
+        <div className="grid grid-cols-3 items-center">
+          <button onClick={onLeave} className="text-muted hover:text-text transition-colors font-body text-sm text-left">
             ← Rooms
           </button>
+          <div className="flex justify-center">
+            <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
+              <span className="text-xl">🕵️</span>
+              <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
+            </Link>
+          </div>
+          <div />
         </div>
 
         {/* Room info */}
