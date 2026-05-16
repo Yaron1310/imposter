@@ -18,6 +18,15 @@ interface RoomInfo {
   gamezoneId: string;
 }
 
+function AppHeader() {
+  return (
+    <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
+      <span className="text-xl">🕵️</span>
+      <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
+    </Link>
+  );
+}
+
 export default function UserPage() {
   const params = useParams<{ username: string }>();
   const router = useRouter();
@@ -26,9 +35,10 @@ export default function UserPage() {
   const [notFound, setNotFound] = useState(false);
   const [activeRooms, setActiveRooms] = useState<RoomInfo[]>([]);
 
-  // Modal state — used for both join and create
+  // Modal state
   const [modal, setModal] = useState<{ gz: Gamezone; joinRoomId?: string } | null>(null);
   const [playerName, setPlayerName] = useState('');
+  const [roomName, setRoomName] = useState('');
   const [nameError, setNameError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -78,23 +88,39 @@ export default function UserPage() {
     return () => clearInterval(interval);
   }, [fetchRooms]);
 
-  const handleSubmit = async () => {
-    const trimmed = playerName.trim();
-    if (!trimmed) { setNameError('Please enter your name'); return; }
-    if (trimmed.length > 24) { setNameError('Name must be 24 characters or fewer'); return; }
-    if (!modal) return;
+  const openCreateModal = (gz: Gamezone) => {
+    setModal({ gz });
+    setRoomName('');
+    setNameError('');
+  };
 
+  const openJoinModal = (gz: Gamezone, joinRoomId: string) => {
+    setModal({ gz, joinRoomId });
+    setNameError('');
+  };
+
+  const handleSubmit = async () => {
+    const trimmedName = playerName.trim();
+    if (!trimmedName) { setNameError('Please enter your name'); return; }
+    if (trimmedName.length > 24) { setNameError('Name must be 24 characters or fewer'); return; }
+
+    if (!modal?.joinRoomId) {
+      const trimmedRoom = roomName.trim();
+      if (!trimmedRoom) { setNameError('Please enter a room name'); return; }
+      if (trimmedRoom.length > 40) { setNameError('Room name must be 40 characters or fewer'); return; }
+    }
+
+    if (!modal) return;
     setNameError('');
     setSubmitting(true);
-    sessionStorage.setItem('playerName', trimmed);
+    sessionStorage.setItem('playerName', trimmedName);
 
     try {
       if (modal.joinRoomId) {
-        // Join existing room
         const res = await fetch(`/api/rooms/${modal.joinRoomId}/join`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: trimmed }),
+          body: JSON.stringify({ name: trimmedName }),
         });
         const data = await res.json();
         if (res.ok) {
@@ -103,13 +129,12 @@ export default function UserPage() {
           setNameError(data.error ?? 'Failed to join room');
         }
       } else {
-        // Create new room
         const res = await fetch('/api/rooms', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            roomName: `${profile!.username}'s ${modal.gz.name}`,
-            hostName: trimmed,
+            roomName: roomName.trim(),
+            hostName: trimmedName,
             mode: 'super',
             ownerUsername: profile!.username,
             gamezoneId: modal.gz.id,
@@ -148,15 +173,11 @@ export default function UserPage() {
   return (
     <div className="min-h-screen bg-bg p-4">
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-muted hover:text-text font-body text-sm transition-colors">← Home</Link>
-        </div>
+        <AppHeader />
 
-        <div className="space-y-1">
-          <div className="text-4xl">🕵️</div>
-          <h1 className="font-heading text-4xl text-text">@{profile!.username}</h1>
-          <p className="text-muted font-body text-sm">Gamezones</p>
+        <div>
+          <p className="text-muted font-body text-xs uppercase tracking-widest">Gamezones by</p>
+          <h1 className="font-heading text-3xl text-text">@{profile!.username}</h1>
         </div>
 
         {profile!.gamezones.length === 0 ? (
@@ -168,7 +189,6 @@ export default function UserPage() {
             const gzRooms = activeRooms.filter((r) => r.gamezoneId === gz.id);
             return (
               <div key={gz.id} className="bg-card border border-border rounded-[14px] p-6 space-y-4">
-                {/* Gamezone header */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="font-heading text-2xl text-text">{gz.name}</p>
@@ -177,14 +197,13 @@ export default function UserPage() {
                     </p>
                   </div>
                   <button
-                    onClick={() => { setModal({ gz }); setNameError(''); }}
+                    onClick={() => openCreateModal(gz)}
                     className="bg-card hover:bg-border border border-border text-text font-body font-medium px-4 py-2 rounded-[14px] transition-all text-sm"
                   >
                     + Create Room
                   </button>
                 </div>
 
-                {/* Category tags */}
                 {gz.categories.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {gz.categories.map((cat) => (
@@ -195,7 +214,6 @@ export default function UserPage() {
                   </div>
                 )}
 
-                {/* Active rooms */}
                 {gzRooms.length > 0 && (
                   <div className="space-y-2 pt-1 border-t border-border">
                     <p className="text-xs text-muted font-body uppercase tracking-widest pt-2">Open Rooms</p>
@@ -208,7 +226,7 @@ export default function UserPage() {
                           </p>
                         </div>
                         <button
-                          onClick={() => { setModal({ gz, joinRoomId: room.id }); setNameError(''); }}
+                          onClick={() => openJoinModal(gz, room.id)}
                           className="bg-accent hover:bg-red-600 text-white font-body font-medium px-4 py-2 rounded-[10px] transition-all text-sm"
                         >
                           Join
@@ -223,7 +241,6 @@ export default function UserPage() {
         )}
       </div>
 
-      {/* Modal — join or create */}
       {modal && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50" onClick={() => setModal(null)}>
           <div className="bg-card border border-border rounded-[14px] p-6 w-full max-w-sm space-y-4" onClick={(e) => e.stopPropagation()}>
@@ -231,9 +248,24 @@ export default function UserPage() {
               {modal.joinRoomId ? 'JOIN ROOM' : 'CREATE ROOM'}
             </h2>
             <p className="text-muted font-body text-sm">
-              {modal.joinRoomId ? 'Joining: ' : 'Playing: '}
-              <strong className="text-text">{modal.gz.name}</strong>
+              Gamezone: <strong className="text-text">{modal.gz.name}</strong>
             </p>
+
+            {!modal.joinRoomId && (
+              <div className="space-y-2">
+                <label className="block text-xs text-muted font-body uppercase tracking-widest">Room Name</label>
+                <input
+                  type="text"
+                  value={roomName}
+                  onChange={(e) => { setRoomName(e.target.value); setNameError(''); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+                  placeholder="Friday Night..."
+                  maxLength={40}
+                  autoFocus
+                  className="w-full bg-bg border border-border rounded-[14px] px-4 py-3 text-text font-body placeholder-muted focus:outline-none focus:border-accent transition-colors"
+                />
+              </div>
+            )}
 
             <div className="space-y-2">
               <label className="block text-xs text-muted font-body uppercase tracking-widest">Your Name</label>
@@ -244,7 +276,7 @@ export default function UserPage() {
                 onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
                 placeholder="Enter your name..."
                 maxLength={24}
-                autoFocus
+                autoFocus={!!modal.joinRoomId}
                 className="w-full bg-bg border border-border rounded-[14px] px-4 py-3 text-text font-body placeholder-muted focus:outline-none focus:border-accent transition-colors"
               />
               {nameError && <p className="text-accent text-xs font-body">{nameError}</p>}

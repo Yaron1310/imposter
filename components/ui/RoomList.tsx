@@ -1,4 +1,3 @@
-import { Badge } from './Badge';
 import { Button } from './Button';
 
 interface RoomInfo {
@@ -32,12 +31,7 @@ export function RoomList({ rooms, onJoin }: RoomListProps) {
           className="flex items-center justify-between bg-surface border border-border rounded-[14px] px-4 py-3"
         >
           <div className="flex-1 min-w-0 mr-4">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-body text-text font-medium truncate">{room.name}</span>
-              <Badge variant={room.mode === 'super' ? 'super' : 'imposter'}>
-                {room.mode === 'super' ? 'Super' : 'Classic'}
-              </Badge>
-            </div>
+            <span className="font-body text-text font-medium truncate block">{room.name}</span>
             <p className="text-xs text-muted font-body mt-0.5">
               Host: {room.host} &middot; {room.playerCount} player{room.playerCount !== 1 ? 's' : ''}
             </p>

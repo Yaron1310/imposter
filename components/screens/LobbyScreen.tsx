@@ -1,8 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import type { PlayerStateView } from '@/lib/types';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { PlayerList } from '@/components/ui/PlayerList';
 
 interface LobbyScreenProps {
@@ -28,22 +28,21 @@ export function LobbyScreen({ state, playerName, onReady, onForceStart, onLeave,
       <div className="w-full max-w-md space-y-4">
 
         {/* Header */}
-        <div className="flex items-center gap-3">
-          <button onClick={onLeave} className="text-muted hover:text-text transition-colors font-body text-sm flex items-center gap-1">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
+            <span className="text-xl">🕵️</span>
+            <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
+          </Link>
+          <button onClick={onLeave} className="text-muted hover:text-text transition-colors font-body text-sm">
             ← Rooms
           </button>
         </div>
 
         {/* Room info */}
         <div className="bg-card border border-border rounded-[14px] p-6 space-y-3">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <h1 className="font-heading text-3xl text-text leading-none">{state.roomName}</h1>
-              <p className="text-xs text-muted font-body mt-1">Room ID: {state.roomId}</p>
-            </div>
-            <Badge variant={state.mode === 'super' ? 'super' : 'imposter'}>
-              {state.mode === 'super' ? 'Super Blindspot' : 'Classic'}
-            </Badge>
+          <div>
+            <h1 className="font-heading text-3xl text-text leading-none">{state.roomName}</h1>
+            <p className="text-xs text-muted font-body mt-1">Room ID: {state.roomId}</p>
           </div>
           {state.round > 0 && <p className="text-sm text-muted font-body">Round {state.round}</p>}
         </div>

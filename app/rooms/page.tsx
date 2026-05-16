@@ -7,6 +7,15 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { RoomList } from '@/components/ui/RoomList';
 
+function AppHeader() {
+  return (
+    <Link href="/" className="flex items-center gap-2 text-text hover:opacity-80 transition-opacity">
+      <span className="text-xl">🕵️</span>
+      <span className="font-heading text-xl tracking-wider">BLINDSPOT</span>
+    </Link>
+  );
+}
+
 interface RoomInfo {
   id: string;
   name: string;
@@ -128,8 +137,7 @@ export default function RoomsPage() {
   return (
     <div className="min-h-screen bg-bg p-4">
       <div className="max-w-md mx-auto space-y-4 pt-8">
-        {/* Header */}
-        <Link href="/" className="text-muted hover:text-text font-body text-sm transition-colors block">← Home</Link>
+        <AppHeader />
         <div className="flex items-center justify-between">
           <h1 className="font-heading text-3xl text-text">GAME ROOMS</h1>
           <div className="flex items-center gap-2">
