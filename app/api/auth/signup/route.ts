@@ -5,11 +5,11 @@ import type { UserRecord } from '@/lib/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json() as { username?: string; email?: string; password?: string };
-    const { username: rawUsername, email: rawEmail, password } = body;
+    const body = await request.json() as { username?: string; email?: string; password?: string; verificationCode?: string };
+    const { username: rawUsername, email: rawEmail, password, verificationCode } = body;
 
-    if (!rawUsername || !rawEmail || !password) {
-      return NextResponse.json({ error: 'username, email, and password are required' }, { status: 400 });
+    if (!rawUsername || !rawEmail || !password || !verificationCode) {
+      return NextResponse.json({ error: 'username, email, password, and verification code are required' }, { status: 400 });
     }
 
     const username = rawUsername.trim().toLowerCase();
@@ -28,9 +28,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
     }
 
-    const [existingByEmail, existingByUsername] = await Promise.all([
+    const [existingByEmail, existingByUsername, storedCode] = await Promise.all([
       redis.get<string>(`user:email:${email}`),
       redis.get<string>(`user:username:${username}`),
+      redis.get<string>(`email:verify:${email}`),
     ]);
 
     if (existingByEmail) {
@@ -38,6 +39,9 @@ export async function POST(request: NextRequest) {
     }
     if (existingByUsername) {
       return NextResponse.json({ error: 'This username is already taken' }, { status: 409 });
+    }
+    if (!storedCode || storedCode !== verificationCode.trim()) {
+      return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 400 });
     }
 
     const userId = crypto.randomUUID();
@@ -50,6 +54,7 @@ export async function POST(request: NextRequest) {
       redis.set(`user:email:${email}`, userId),
       redis.set(`user:username:${username}`, userId),
       redis.sadd('users:index', userId),
+      redis.del(`email:verify:${email}`),
     ]);
 
     const token = signToken({ userId, username, email });
