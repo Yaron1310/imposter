@@ -52,13 +52,13 @@ export default function LandingPage() {
               onClick={() => setShowPlayModal(true)}
               className="w-full bg-accent hover:bg-red-600 text-white font-body font-medium py-4 rounded-[14px] transition-all text-lg"
             >
-              ▶ Play
+              ▶ Play a random game
             </button>
             <button
               onClick={() => router.push('/login')}
-              className="w-full bg-card hover:bg-border border border-border text-text font-body font-medium py-4 rounded-[14px] transition-all text-lg"
+              className="w-full bg-card hover:bg-border border border-border text-text font-body font-medium py-4 rounded-[14px] transition-all text-sm"
             >
-              Login / Sign Up
+              Login / Sign Up to create custom games
             </button>
           </div>
         ) : (
