@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { HowToPlayModal } from '@/components/ui/HowToPlayModal';
 
 export default function LandingPage() {
   const router = useRouter();
   const [showPlayModal, setShowPlayModal] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
@@ -37,6 +39,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center p-4">
+      {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
       <div className="w-full max-w-sm space-y-8 text-center">
         {/* Logo */}
         <div className="space-y-3">
@@ -59,6 +62,12 @@ export default function LandingPage() {
               className="w-full bg-card hover:bg-border border border-border text-text font-body font-medium py-4 rounded-[14px] transition-all text-sm"
             >
               Login / Sign Up to create custom games
+            </button>
+            <button
+              onClick={() => setShowHowToPlay(true)}
+              className="w-full text-muted hover:text-text font-body text-sm py-2 transition-colors"
+            >
+              ? How to play
             </button>
           </div>
         ) : (

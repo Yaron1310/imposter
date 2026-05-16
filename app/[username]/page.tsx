@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Gamezone } from '@/lib/types';
+import { HowToPlayModal } from '@/components/ui/HowToPlayModal';
 
 interface PublicProfile {
   username: string;
@@ -36,6 +37,8 @@ export default function UserPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeRooms, setActiveRooms] = useState<RoomInfo[]>([]);
+
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   // Modal state
   const [modal, setModal] = useState<{ gz: Gamezone; joinRoomId?: string } | null>(null);
@@ -174,8 +177,18 @@ export default function UserPage() {
 
   return (
     <div className="min-h-screen bg-bg p-4">
+      {showHowToPlay && <HowToPlayModal onClose={() => setShowHowToPlay(false)} />}
       <div className="max-w-2xl mx-auto space-y-6">
         <AppHeader />
+
+        <div className="flex justify-center">
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            className="text-muted hover:text-text font-body text-sm transition-colors"
+          >
+            ? How to play
+          </button>
+        </div>
 
         <div>
           <p className="text-muted font-body text-xs uppercase tracking-widest">Gamezones by</p>
