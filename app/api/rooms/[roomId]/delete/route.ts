@@ -20,7 +20,8 @@ export async function POST(
       return NextResponse.json({ error: 'Only the host can delete the room' }, { status: 403 });
     }
 
-    await redis.del(`room:${roomId}`);
+    const normalizedName = room.roomName.trim().toLowerCase().replace(/\s+/g, ' ');
+    await redis.del(`room:${roomId}`, `room:name:${normalizedName}`);
     await redis.srem('rooms:index', roomId);
 
     return NextResponse.json({ ok: true });

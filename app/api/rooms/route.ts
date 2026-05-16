@@ -63,7 +63,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Mode must be imposter or super' }, { status: 400 });
     }
 
-    const slug = roomName.toLowerCase().replace(/\s+/g, '');
+    const normalizedName = roomName.trim().toLowerCase().replace(/\s+/g, ' ');
+    const existingRoomId = await redis.get<string>(`room:name:${normalizedName}`);
+    if (existingRoomId) {
+      return NextResponse.json({ error: 'A room with this name already exists' }, { status: 409 });
+    }
+
+    const slug = normalizedName.replace(/\s+/g, '');
     const roomId = `${slug}_${Math.random().toString(36).slice(2, 7)}`;
 
     const state: RoomState = {
@@ -96,6 +102,7 @@ export async function POST(request: NextRequest) {
     };
 
     await redis.set(`room:${roomId}`, state, { ex: 7200 });
+    await redis.set(`room:name:${normalizedName}`, roomId, { ex: 7200 });
     await redis.sadd('rooms:index', roomId);
 
     return NextResponse.json({ ok: true, roomId, roomName: state.roomName, mode });
