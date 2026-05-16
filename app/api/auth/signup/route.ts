@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     if (existingByUsername) {
       return NextResponse.json({ error: 'This username is already taken' }, { status: 409 });
     }
-    if (!storedCode || storedCode !== verificationCode.trim()) {
+    if (!storedCode || String(storedCode) !== verificationCode.trim()) {
       return NextResponse.json({ error: 'Invalid or expired verification code' }, { status: 400 });
     }
 

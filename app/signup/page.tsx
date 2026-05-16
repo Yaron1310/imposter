@@ -163,7 +163,7 @@ export default function SignupPage() {
                 type="text"
                 value={verificationCode}
                 onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                placeholder="123456"
+                placeholder="------"
                 required
                 maxLength={6}
                 className="w-full bg-card border border-border rounded-[14px] px-4 py-3 text-text font-body placeholder-muted focus:outline-none focus:border-accent transition-colors text-center text-2xl tracking-widest"
