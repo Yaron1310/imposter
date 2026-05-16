@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [gamezones, setGamezones] = useState<Gamezone[]>([]);
   const [gzLoading, setGzLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -31,6 +32,14 @@ export default function DashboardPage() {
     await fetch(`/api/gamezones/${id}`, { method: 'DELETE' });
     setGamezones((prev) => prev.filter((g) => g.id !== id));
   };
+
+  const handleCopyUrl = useCallback(() => {
+    const url = `${window.location.origin}/${user!.username}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }, [user]);
 
   const handleLogout = async () => {
     await logout();
@@ -68,12 +77,20 @@ export default function DashboardPage() {
         <div className="bg-card border border-border rounded-[14px] p-6 space-y-2">
           <p className="font-heading text-2xl text-text">@{user.username}</p>
           <p className="text-muted font-body text-sm">{user.email}</p>
-          <p className="text-muted font-body text-xs">
-            Your public page:{' '}
-            <a href={`/${user.username}`} className="text-accent hover:underline">
-              blindspot.app/{user.username}
+          <div className="flex items-center gap-2 mt-1">
+            <a
+              href={`/${user.username}`}
+              className="text-accent hover:underline font-body text-xs break-all"
+            >
+              {typeof window !== 'undefined' ? `${window.location.origin}/${user.username}` : `/${user.username}`}
             </a>
-          </p>
+            <button
+              onClick={handleCopyUrl}
+              className="shrink-0 text-xs text-muted hover:text-text font-body border border-border rounded-[8px] px-2 py-0.5 transition-colors"
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
         </div>
 
         {/* Gamezones */}

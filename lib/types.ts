@@ -63,6 +63,7 @@ export interface PlayerStateView {
   result: (RoomState['result'] & { tally: Record<string, number> }) | null;
   turnOrder: { [name: string]: number };
   readyStartedAt: number;
+  ownerUsername?: string;
 }
 
 export interface GamezoneCategory {

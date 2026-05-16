@@ -71,8 +71,8 @@ export function GameContainer({ roomId, playerName }: GameContainerProps) {
 
   // Redirect on room not found
   useEffect(() => {
-    if (error === 'Room not found') router.push('/rooms');
-  }, [error, router]);
+    if (error === 'Room not found') router.push(state?.ownerUsername ? `/${state.ownerUsername}` : '/rooms');
+  }, [error, router, state?.ownerUsername]);
 
   const apiCall = async (endpoint: string, body: Record<string, unknown>) => {
     setLoading(true);
@@ -98,9 +98,11 @@ export function GameContainer({ roomId, playerName }: GameContainerProps) {
   const handleForceStart = () => apiCall('start', { name: playerName, force: true });
   const handleVote = (target: string) => apiCall('vote', { voter: playerName, target });
   const handleNewRound = () => apiCall('next-round', { name: playerName });
+  const backUrl = state?.ownerUsername ? `/${state.ownerUsername}` : '/rooms';
+
   const handleCloseRoom = async () => {
     await apiCall('delete', { name: playerName });
-    router.push('/rooms');
+    router.push(backUrl);
   };
   const handleLeave = async () => {
     try {
@@ -110,7 +112,7 @@ export function GameContainer({ roomId, playerName }: GameContainerProps) {
         body: JSON.stringify({ name: playerName }),
       });
     } catch { /* ignore */ }
-    router.push('/rooms');
+    router.push(backUrl);
   };
 
   // Loading — waiting for first state fetch

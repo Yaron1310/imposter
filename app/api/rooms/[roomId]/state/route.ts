@@ -69,6 +69,7 @@ export async function GET(
       result: resultWithTally,
       turnOrder: room.turnOrder,
       readyStartedAt: room.readyStartedAt ?? 0,
+      ...(room.ownerUsername ? { ownerUsername: room.ownerUsername } : {}),
     };
 
     return NextResponse.json(view);
