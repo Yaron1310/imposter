@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
-import type { RoomState } from '@/lib/types';
+import type { RoomState, Gamezone } from '@/lib/types';
 import { buildRoundState } from '@/lib/game-logic';
 
 const TTL = 7200;
+
+async function loadGamezoneCategories(room: RoomState): Promise<Record<string, string[]> | undefined> {
+  if (!room.ownerUsername || !room.gamezoneId) return undefined;
+  const userId = await redis.get<string>(`user:username:${room.ownerUsername}`);
+  if (!userId) return undefined;
+  const gamezones = await redis.get<Gamezone[]>(`user:${userId}:gamezones`) ?? [];
+  const gz = gamezones.find((g) => g.id === room.gamezoneId);
+  if (!gz) return undefined;
+  const categories = Object.fromEntries(
+    gz.categories
+      .filter((c) => c.words.length >= 2)
+      .map((c) => [c.name, c.words])
+  );
+  return Object.keys(categories).length > 0 ? categories : undefined;
+}
 
 export async function POST(
   request: NextRequest,
@@ -33,8 +48,8 @@ export async function POST(
     const allReady = playerNames.length >= 2 && playerNames.every((p) => room.players[p].ready);
 
     if (allReady) {
-      // Auto-start the round immediately
-      buildRoundState(room);
+      const gamezoneCategories = await loadGamezoneCategories(room);
+      buildRoundState(room, gamezoneCategories);
     } else {
       room.updatedAt = Date.now();
     }
