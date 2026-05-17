@@ -30,6 +30,13 @@ export default function RootLayout({
     <html lang="en" className={`${bebasNeue.variable} ${dmSans.variable}`}>
       <body className="bg-bg text-text font-body min-h-screen antialiased">
         {children}
+        <footer className="logyx-footer">
+          <a href="https://logyx.co.il/" className="logyx-link" target="_blank" rel="noopener noreferrer">
+            <span className="logyx-text">Powered by</span>
+            <img decoding="async" src="/logyx_logo_footer.webp" alt="Logyx" className="logyx-logo" />
+            <span className="logyx-name">Logyx</span>
+          </a>
+        </footer>
         <Analytics />
       </body>
     </html>
